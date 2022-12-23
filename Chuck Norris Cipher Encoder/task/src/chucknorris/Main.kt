@@ -1,12 +1,19 @@
 package chucknorris
 
-class Encrypted {
-    private val charBinaryMap = mutableMapOf<Char, String>()
+class Encrypted(private val line: String) {
 
-    fun putCharsToMap(line: String) {
+    private val charBinaryMap: MutableMap<Char, String>
+
+    init {
+        this.charBinaryMap = putCharsToMap()
+    }
+
+    private fun putCharsToMap(): MutableMap<Char, String> {
+        val map = mutableMapOf<Char, String>()
         for (ch in line) {
-            charBinaryMap[ch] = charToBinary(ch)
+            map[ch] = charToBinary(ch)
         }
+        return map
     }
 
     private fun charToBinary(char: Char): String {
@@ -14,20 +21,66 @@ class Encrypted {
         return String.format("%07d", charBinary.toInt())
     }
 
-    fun display(line: String) {
+    private fun zeroAndOneTransform(zeroOrOneSequence: String): MutableList<String> {
+        val listTransform = mutableListOf<String>()
+        if ("""0+""".toRegex().matches(zeroOrOneSequence)) {
+            listTransform.add("00")
+            listTransform.add("0".repeat(zeroOrOneSequence.length))
+        } else if ("""1+""".toRegex().matches(zeroOrOneSequence)) {
+            listTransform.add("0")
+            listTransform.add("0".repeat(zeroOrOneSequence.length))
+        }
+        return listTransform
+    }
+
+    private fun zeros(): String {
+        var binaryString = ""
+        for (ch in line) {
+            binaryString += charBinaryMap[ch]
+        }
+        val zeroList = mutableListOf<String>()
+        var countOne = ""
+        var countZero = ""
+        for (ch in binaryString) {
+            if (ch == '1') {
+                countOne += '1'
+                if (countZero.isNotEmpty()) {
+                    zeroList.addAll(zeroAndOneTransform(countZero))
+                    countZero = ""
+                }
+            } else if (ch == '0') {
+                countZero += '0'
+                if (countOne.isNotEmpty()) {
+                    zeroList.addAll(zeroAndOneTransform(countOne))
+                    countOne = ""
+                }
+            }
+        }
+        if (countZero.isNotEmpty()) {
+            zeroList.addAll(zeroAndOneTransform(countZero))
+        } else if (countOne.isNotEmpty()) {
+            zeroList.addAll(zeroAndOneTransform(countOne))
+        }
+        return zeroList.joinToString(" ")
+    }
+
+    fun displayBinary() {
         println("\nThe result:")
         for (ch in line) {
             println("$ch = ${charBinaryMap[ch]}")
         }
     }
+
+    fun displayZeros() {
+        println("\nThe result:")
+        println(zeros())
+    }
 }
 
 fun encryption() {
-    val encryptedLine = Encrypted()
     println("Input string:")
-    val userInput = readln()
-    encryptedLine.putCharsToMap(userInput)
-    encryptedLine.display(userInput)
+    val encryptedLine = Encrypted(readln())
+    encryptedLine.displayZeros()
 }
 
 fun main() {
