@@ -1,5 +1,7 @@
 package chucknorris
 
+import kotlin.system.exitProcess
+
 class Encrypted(private val line: String) {
 
     private val charBinaryMap: MutableMap<Char, String>
@@ -64,16 +66,9 @@ class Encrypted(private val line: String) {
         return zeroList.joinToString(" ")
     }
 
-    fun displayBinary() {
-        println("\nThe result:")
-        for (ch in line) {
-            println("$ch = ${charBinaryMap[ch]}")
-        }
-    }
-
-    fun displayZeros() {
-        println("\nThe result:")
-        println(zeros())
+    fun displayEncryptedMessage() {
+        println("Encoded string:")
+        println("${zeros()}\n")
     }
 }
 
@@ -89,11 +84,7 @@ class Decrypted(private val line: String) {
 
     private fun zerosToBinary(): String {
         var string = ""
-        val zerosList = line.trim().split(" ")
-        if (zerosList.size % 2 != 0) {
-            println("Wrong input")
-            return string
-        }
+        val zerosList = line.trim().split("""\s+""".toRegex())
         var isOne = false
         for (i in zerosList.indices) {
             if (i % 2 == 0) {
@@ -119,23 +110,70 @@ class Decrypted(private val line: String) {
     }
 
     fun displayDecryptedMessage() {
-        println("\nThe result:")
-        println(decryptedLine)
+        println("Decoded string:")
+        println("$decryptedLine\n")
     }
+}
+
+/**
+ * Checks input string with blocks of "0"
+ */
+fun encryptedMessageCheck(message: String): Boolean {
+    if (!"""[\s*0+]+""".toRegex().matches(message)) {
+        return false
+    }
+    val listBlocks = message.trim().split("""\s+""".toRegex())
+    var binDigitsCount = 0
+    for (i in listBlocks.indices) {
+        if (i % 2 == 0) {
+            if (!(listBlocks[i] == "0" || listBlocks[i] == "00")) {
+                return false
+            }
+        } else {
+            binDigitsCount += listBlocks[i].length
+        }
+    }
+    if (listBlocks.size %2 != 0) {
+        return false
+    }
+    if (binDigitsCount % 7 != 0) {
+        return false
+    }
+    return true
 }
 
 fun encryption() {
     println("Input string:")
     val encryptedLine = Encrypted(readln())
-    encryptedLine.displayZeros()
+    encryptedLine.displayEncryptedMessage()
 }
 
 fun decryption() {
     println("Input encoded string:")
-    val decryptedLine = Decrypted(readln())
-    decryptedLine.displayDecryptedMessage()
+    val userInput = readln()
+    if (encryptedMessageCheck(userInput)) {
+        val decryptedLine = Decrypted(userInput)
+        decryptedLine.displayDecryptedMessage()
+    } else {
+        println("Encoded string is not valid.\n")
+    }
+}
+
+fun encryptionDecryptionApp() {
+    do {
+        println("Please input operation (encode/decode/exit):")
+        when (val userInput = readln()) {
+            "encode" -> encryption()
+            "decode" -> decryption()
+            "exit" -> {
+                println("Bye!")
+                exitProcess(0)
+            }
+            else -> println("There is no '$userInput' operation\n")
+        }
+    } while (true)
 }
 
 fun main() {
-    decryption()
+    encryptionDecryptionApp()
 }
