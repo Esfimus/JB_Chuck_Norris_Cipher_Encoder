@@ -77,12 +77,65 @@ class Encrypted(private val line: String) {
     }
 }
 
+class Decrypted(private val line: String) {
+    private val binaryString: String
+
+    private val decryptedLine: String
+
+    init {
+        this.binaryString = zerosToBinary()
+        this.decryptedLine = binaryToLine()
+    }
+
+    private fun zerosToBinary(): String {
+        var string = ""
+        val zerosList = line.trim().split(" ")
+        if (zerosList.size % 2 != 0) {
+            println("Wrong input")
+            return string
+        }
+        var isOne = false
+        for (i in zerosList.indices) {
+            if (i % 2 == 0) {
+                isOne = zerosList[i] == "0"
+            } else {
+                string += if (isOne) {
+                    "1".repeat(zerosList[i].length)
+                } else {
+                    "0".repeat(zerosList[i].length)
+                }
+            }
+        }
+        return string
+    }
+
+    private fun binaryToLine(): String {
+        val binaryList = binaryString.chunked(7)
+        var decryptedString = ""
+        for (binSequence in binaryList) {
+            decryptedString += Integer.parseInt(binSequence, 2).toChar()
+        }
+        return decryptedString
+    }
+
+    fun displayDecryptedMessage() {
+        println("\nThe result:")
+        println(decryptedLine)
+    }
+}
+
 fun encryption() {
     println("Input string:")
     val encryptedLine = Encrypted(readln())
     encryptedLine.displayZeros()
 }
 
+fun decryption() {
+    println("Input encoded string:")
+    val decryptedLine = Decrypted(readln())
+    decryptedLine.displayDecryptedMessage()
+}
+
 fun main() {
-    encryption()
+    decryption()
 }
